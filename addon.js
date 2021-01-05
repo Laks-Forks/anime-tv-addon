@@ -153,23 +153,11 @@ builder.defineStreamHandler(async (args) => {
 			behaviorHints:{
                 bingeGroup: `anime-brasil`
             }
-        },
-        {
-            id: args.id,
-            title: `${title}`,
-            type: `series`,
-            url: `${locationsd}`,
-			behaviorHints:{
-                bingeGroup: `anime-brasil`
-            }
         }
-
     ];
 
-    console.log(streams)
-    return Promise.resolve({
-        meta: streams
-    });
+    console.log(streams);
+    return { streams };
 });
 
 module.exports = builder.getInterface()
