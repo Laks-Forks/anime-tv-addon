@@ -149,7 +149,7 @@ builder.defineStreamHandler(async (args) => {
             id: args.id,
             title: `${title}`,
             type: `series`,
-            url: `${location}`,
+            url: location,
 			behaviorHints:{
                 bingeGroup: `anime-brasil`
             }
