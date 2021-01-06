@@ -67,15 +67,19 @@ const manifest = {
 const builder = new addonBuilder(manifest);
 
 async function getCatalog() {
-  let catalog = {
-    data: [],
-  };
   try {
-    catalog = await axios.get(
+    const { data: meta } = await axios.get(
       "https://appanimeplus.tk/api-animesbr-10.php?populares"
     );
-  } catch (err) {}
-  return catalog.data;
+
+    const catalog = meta.data || [];
+
+    return catalog;
+  } catch (error) {
+    console.error(
+      `The MovieDB catalog retrieval failed with http status ${error.response.status}`
+    );
+  }
 }
 
 let metas;
@@ -96,6 +100,10 @@ builder.defineCatalogHandler(async (args) => {
       };
     });
 
+    /// TODO? Sugestão, tente usar essa biblioteca de agendamentos do NodeJS
+    /// * https://www.npmjs.com/package/node-schedule
+    /// * Ela evita vários erros comuns e é bem famosa no Node, assim fica no padrão
+
     setTimeout(() => {
       // clear cache every 24h
       metas = false;
@@ -107,15 +115,18 @@ builder.defineCatalogHandler(async (args) => {
 });
 
 builder.defineMetaHandler(async (args) => {
-  let [idPrefixes, metaId] = args.id.split(":");
-  let {
+  const [, metaId] = args.id.split(":");
+
+  const {
     category_name,
     category_image,
     category_description,
     category_genres,
     ano,
   } = await getMeta(metaId);
+
   const resp = await getEpisodes(metaId);
+
   const episodes = resp.map((el) => {
     return {
       id: args.id + ":" + `${el.video_id}`,
@@ -123,7 +134,8 @@ builder.defineMetaHandler(async (args) => {
       released: new Date("0000-00-00 00:00 UTC+02"),
     };
   });
-  let metaObj = {
+
+  const metaObj = {
     id: args.id,
     type: `series`,
     name: `${category_name}`,
@@ -134,16 +146,19 @@ builder.defineMetaHandler(async (args) => {
     releaseInfo: `${ano}`,
     videos: episodes.sort(),
   };
+
   console.log(metaObj);
+
   return Promise.resolve({
     meta: metaObj,
   });
 });
 
 builder.defineStreamHandler(async (args) => {
-  let [idPrefixes, metaId, videoId] = args.id.split(":");
-  let { title, location, locationsd } = await getStream(videoId);
-  let streams = [
+  const [, , videoId] = args.id.split(":");
+  const { title, location } = await getStream(videoId);
+
+  const streams = [
     {
       id: args.id,
       title: `${title}`,
@@ -153,6 +168,7 @@ builder.defineStreamHandler(async (args) => {
   ];
 
   console.log(streams);
+
   return { streams };
 });
 
